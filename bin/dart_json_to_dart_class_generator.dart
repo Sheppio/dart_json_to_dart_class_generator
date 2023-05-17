@@ -66,10 +66,14 @@ void processList(List<dynamic> list) {
       }
     }
     print(varInfos);
+    print('');
+    print("Class NeedToAddName {");
     for (var element in varInfos.entries) {
       print(
-          '${element.value.type}${element.value.optional ? "?" : ""} ${element.key};');
+          '  ${element.value.type}${element.value.optional ? "?" : ""} ${element.key};');
     }
+    print('}');
+    print('');
   } else if (list.first is dynamic) {
     print('List of "<dynamic>" found');
   } else {
