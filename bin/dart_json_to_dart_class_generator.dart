@@ -52,7 +52,7 @@ void main(List<String> arguments) async {
   print(
       '************************************************************************************************************************');
   for (var fo in foundObjects) {
-    print('*******************************params for $fo');
+    //print('*******************************params for $fo');
     var foTokens = fo.split('.');
     // print(pairings
     //     .map((e) => e.name
@@ -80,10 +80,16 @@ void main(List<String> arguments) async {
       }
     }
     var maxCount = y.values.reduce((value, element) => max(value, element));
+    print('class ${fo.replaceAll('.', '')} {');
     for (var element in y.entries) {
+      var type = pairings.where((pe) => pe.name == element.key).first.what;
       print(
-          '${element.key} ${element.value == maxCount ? "required" : "optional"}');
+          '  $type${element.value == maxCount ? "" : "?"} ${element.key.split('.').last};');
+      // print(
+      //     '${element.key} ${element.value == maxCount ? "required" : "optional"}');
     }
+    print('}');
+    print('');
     //print(x.join('\n'));
   }
 }
