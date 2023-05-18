@@ -1,5 +1,9 @@
 import 'dart:convert';
+import 'dart:math';
+
 import 'package:http/http.dart' as http;
+
+var pairings = <Pairing>[];
 
 void main(List<String> arguments) async {
   var json =
@@ -37,6 +41,51 @@ void main(List<String> arguments) async {
   // }
 
   print('JSON to Dart class generator');
+  //print(pairings.join("\n"));
+  var foundObjects = <String>{};
+  for (var p in pairings) {
+    var tokens = p.name.split('.');
+    tokens.removeLast();
+    foundObjects.add(tokens.join('.'));
+  }
+  print(foundObjects.join('\n'));
+  print(
+      '************************************************************************************************************************');
+  for (var fo in foundObjects) {
+    print('*******************************params for $fo');
+    var foTokens = fo.split('.');
+    // print(pairings
+    //     .map((e) => e.name
+    //         .replaceAll(fo, '')
+    //         .split('')
+    //         .where((element) => element == '.')
+    //         .length)
+    //     .join('\n'));
+    var x = pairings
+        .where((element) =>
+            element.name.startsWith(fo) &&
+            element.name
+                    .replaceAll(fo, '')
+                    .split('')
+                    .where((element) => element == '.')
+                    .length ==
+                1)
+        .toList();
+    var y = <String, int>{};
+    for (var element in x) {
+      if (y.containsKey(element.name)) {
+        y[element.name] = y[element.name]! + 1;
+      } else {
+        y[element.name] = 1;
+      }
+    }
+    var maxCount = y.values.reduce((value, element) => max(value, element));
+    for (var element in y.entries) {
+      print(
+          '${element.key} ${element.value == maxCount ? "required" : "optional"}');
+    }
+    //print(x.join('\n'));
+  }
 }
 
 void processObject(String objectName, Map<String, dynamic> map) {
@@ -46,15 +95,20 @@ void processObject(String objectName, Map<String, dynamic> map) {
       name = name.replaceRange(0, 1, name.substring(0, 1).toUpperCase());
       var obj = '${objectName}.$name'.replaceAll(".", "");
       print('${objectName}.$name --> ${obj}');
+      pairings.add(Pairing('${objectName}.$name', '${obj}'));
       processObject('${objectName}.$name', entry.value);
     } else if (entry.value is List) {
       var name = createClassName(entry.key);
       name = name.replaceRange(0, 1, name.substring(0, 1).toUpperCase());
       print('${objectName}.${entry.key} --> List<$objectName$name>');
+      pairings
+          .add(Pairing('${objectName}.${entry.key}', 'List<$objectName$name>'));
       processList('${objectName}.$name', entry.value);
     } else {
       print(
           '${objectName}.${entry.key} --> ${entry.value.runtimeType.toString()}');
+      pairings.add(Pairing('${objectName}.${entry.key}',
+          '${entry.value.runtimeType.toString()}'));
     }
   }
 }
@@ -67,8 +121,21 @@ void processList(String listItemName, List<dynamic> list) {
       processList(listItemName, item);
     } else {
       print('$listItemName --> ${item.runtimeType.toString()}');
+      pairings.add(Pairing('$listItemName', '${item.runtimeType.toString()}'));
     }
   }
+}
+
+class Pairing {
+  String name;
+  String what;
+  Pairing(
+    this.name,
+    this.what,
+  );
+
+  @override
+  String toString() => 'Pairing(name: $name, what: $what)';
 }
 
 class VarInfo {
